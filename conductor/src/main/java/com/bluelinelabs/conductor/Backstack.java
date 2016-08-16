@@ -9,7 +9,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-class Backstack implements Iterable<RouterTransaction> {
+public class Backstack implements Iterable<RouterTransaction> {
 
     private static final String KEY_ENTRIES = "Backstack.entries";
 
