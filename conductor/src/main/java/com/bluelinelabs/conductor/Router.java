@@ -162,7 +162,7 @@ public abstract class Router {
         if (poppedControllers.size() > 0) {
             trackDestroyingControllers(poppedControllers);
 
-            performControllerChange(null, poppedControllers.get(0).controller, false, poppedControllers.get(0).popChangeHandler());
+            performControllerChange(null, poppedControllers.get(0), false, poppedControllers.get(0).popChangeHandler());
         }
     }
 
@@ -306,11 +306,12 @@ public abstract class Router {
         removeAllExceptTopAndUnowned();
 
         if (backstack.size() > 0) {
-            Controller newTop = backstack.get(backstack.size() - 1).controller;
+            RouterTransaction newTopTransaction = backstack.get(backstack.size() - 1);
+            Controller newTop = newTopTransaction.controller;
 
             if (newTop != oldTop) {
                 ControllerChangeHandler handler = changeHandler != null ? changeHandler : new SimpleSwapChangeHandler();
-                performControllerChange(newTop, oldTop, true, handler);
+                performControllerChange(newTopTransaction, oldTopTransaction, true, handler);
             }
         }
 
@@ -357,7 +358,7 @@ public abstract class Router {
             RouterTransaction transaction = backstackIterator.next();
 
             if (transaction.controller.getNeedsAttach()) {
-                performControllerChange(transaction.controller, null, true, new SimpleSwapChangeHandler(false));
+                performControllerChange(transaction, null, true, new SimpleSwapChangeHandler(false));
             }
         }
     }
@@ -505,7 +506,7 @@ public abstract class Router {
                 changeHandler = topTransaction.popChangeHandler();
             }
 
-            performControllerChange(backStack.peek().controller, topTransaction.controller, false, changeHandler);
+            performControllerChange(backStack.peek(), topTransaction, false, changeHandler);
         }
     }
 
@@ -553,12 +554,12 @@ public abstract class Router {
         Controller toController = to != null ? to.controller : null;
         Controller fromController = from != null ? from.controller : null;
 
-        performControllerChange(toController, fromController, isPush, changeHandler);
+        performControllerChange(to, from, isPush, changeHandler);
     }
 
-    private void performControllerChange(final Controller to, final Controller from, boolean isPush, @NonNull ControllerChangeHandler changeHandler) {
+    private void performControllerChange(final RouterTransaction to, final RouterTransaction from, boolean isPush, @NonNull ControllerChangeHandler changeHandler) {
         if (to != null) {
-            setControllerRouter(to);
+            setControllerRouter(to.controller);
         } else if (backStack.size() == 0 && !popsLastView) {
             // We're emptying out the backstack. Views get weird if you transition them out, so just no-op it. The hosting
             // Activity should be handling this by finishing or at least hiding this view.

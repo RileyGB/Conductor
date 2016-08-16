@@ -87,14 +87,14 @@ public abstract class Controller {
 
     private final ControllerChangeListener childRouterChangeListener = new ControllerChangeListener() {
         @Override
-        public void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
+        public void onChangeStarted(RouterTransaction to, RouterTransaction from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
             if (isPush) {
-                onChildControllerPushed(to);
+                onChildControllerPushed(to.controller);
             }
         }
 
         @Override
-        public void onChangeCompleted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) { }
+        public void onChangeCompleted(RouterTransaction to, RouterTransaction from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) { }
     };
 
     static Controller newInstance(Bundle bundle) {

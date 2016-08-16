@@ -94,21 +94,21 @@ public abstract class ControllerChangeHandler {
         }
     }
 
-    public static void executeChange(final Controller to, final Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler inHandler) {
+    public static void executeChange(final RouterTransaction to, final RouterTransaction from, boolean isPush, ViewGroup container, ControllerChangeHandler inHandler) {
         executeChange(to, from, isPush, container, inHandler, new ArrayList<ControllerChangeListener>());
     }
 
-    public static void executeChange(final Controller to, final Controller from, final boolean isPush, final ViewGroup container, final ControllerChangeHandler inHandler, @NonNull final List<ControllerChangeListener> listeners) {
+    public static void executeChange(final RouterTransaction to, final RouterTransaction from, final boolean isPush, final ViewGroup container, final ControllerChangeHandler inHandler, @NonNull final List<ControllerChangeListener> listeners) {
         if (container != null) {
             final ControllerChangeHandler handler = inHandler != null ? inHandler : new SimpleSwapChangeHandler();
 
             if (isPush) {
-                inProgressPushHandlers.put(to.getInstanceId(), handler);
+                inProgressPushHandlers.put(to.controller.getInstanceId(), handler);
             } else if (from != null) {
-                ControllerChangeHandler handlerForPush = inProgressPushHandlers.get(from.getInstanceId());
+                ControllerChangeHandler handlerForPush = inProgressPushHandlers.get(from.controller.getInstanceId());
                 if (handlerForPush != null) {
-                    handlerForPush.onAbortPush(handler, to);
-                    inProgressPushHandlers.remove(from.getInstanceId());
+                    handlerForPush.onAbortPush(handler, to.controller);
+                    inProgressPushHandlers.remove(from.controller.getInstanceId());
                 }
             }
 
@@ -121,16 +121,16 @@ public abstract class ControllerChangeHandler {
 
             final View toView;
             if (to != null) {
-                toView = to.inflate(container);
-                to.changeStarted(handler, toChangeType);
+                toView = to.controller.inflate(container);
+                to.controller.changeStarted(handler, toChangeType);
             } else {
                 toView = null;
             }
 
             final View fromView;
             if (from != null) {
-                fromView = from.getView();
-                from.changeStarted(handler, fromChangeType);
+                fromView = from.controller.getView();
+                from.controller.changeStarted(handler, fromChangeType);
             } else {
                 fromView = null;
             }
@@ -139,12 +139,12 @@ public abstract class ControllerChangeHandler {
                 @Override
                 public void onChangeCompleted() {
                     if (from != null) {
-                        from.changeEnded(handler, fromChangeType);
+                        from.controller.changeEnded(handler, fromChangeType);
                     }
 
                     if (to != null) {
-                        inProgressPushHandlers.remove(to.getInstanceId());
-                        to.changeEnded(handler, toChangeType);
+                        inProgressPushHandlers.remove(to.controller.getInstanceId());
+                        to.controller.changeEnded(handler, toChangeType);
                     }
 
                     for (ControllerChangeListener listener : listeners) {
@@ -162,23 +162,23 @@ public abstract class ControllerChangeHandler {
         /**
          * Called when a {@link ControllerChangeHandler} has started changing {@link Controller}s
          *
-         * @param to The new Controller
-         * @param from The old Controller
+         * @param to The new RouterTransaction
+         * @param from The old RouterTransaction
          * @param isPush True if this is a push operation, or false if it's a pop.
          * @param container The containing ViewGroup
          * @param handler The change handler being used.
          */
-        void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler);
+        void onChangeStarted(RouterTransaction to, RouterTransaction from, boolean isPush, ViewGroup container, ControllerChangeHandler handler);
 
         /**
          * Called when a {@link ControllerChangeHandler} has completed changing {@link Controller}s
-         * @param to The new Controller
-         * @param from The old Controller
+         * @param to The new RouterTransaction
+         * @param from The old RouterTransaction
          * @param isPush True if this was a push operation, or false if it's a pop.
          * @param container The containing ViewGroup
          * @param handler The change handler that was used.
          */
-        void onChangeCompleted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler);
+        void onChangeCompleted(RouterTransaction to, RouterTransaction from, boolean isPush, ViewGroup container, ControllerChangeHandler handler);
     }
 
     /**
